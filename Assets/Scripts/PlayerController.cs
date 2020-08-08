@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     private bool m_IsGrounded = true;
     private Quaternion targetRotation;
 
+    [SerializeField] private Animator m_Animator;
     [Range(0, .3f)] [SerializeField] private float m_MovementSmoothing = .05f;	// How much to smooth out the movement
     [SerializeField] private float m_RotationSpeed = 10f;
     [SerializeField] private float m_Speed = 10.0f;
@@ -27,12 +28,15 @@ public class PlayerController : MonoBehaviour
         // If the player should jump...
         if (m_IsGrounded && Input.GetButtonDown("Jump"))
         {
+            m_Animator.SetBool("IsJumping", true);
             // Add a vertical force to the player.
             m_RigidBody.AddForce(new Vector3(0f, m_JumpForce, 0f));
             m_IsGrounded = false;
         }
+        else if(m_IsGrounded && !Input.GetButtonDown("Jump"))
+            m_Animator.SetBool("IsJumping", false);
 
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * m_RotationSpeed);
+        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * m_RotationSpeed);
     }
 
     void FixedUpdate()
@@ -46,6 +50,12 @@ public class PlayerController : MonoBehaviour
             Flip();
             m_FacingRight = !m_FacingRight;
         }
+
+        if (mH != 0f)
+            m_Animator.SetBool("IsRunning", true);
+        else
+            m_Animator.SetBool("IsRunning", false);
+
     }
 
     void OnCollisionEnter(Collision collision)
@@ -55,8 +65,8 @@ public class PlayerController : MonoBehaviour
 
     private void Flip()
     {
-        targetRotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, 180f);
-        if (transform.rotation.eulerAngles.z < 0f)
-            targetRotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, -180f);
+        targetRotation = Quaternion.Euler(transform.rotation.eulerAngles.x, -90f, transform.rotation.eulerAngles.z);
+        if (transform.rotation.eulerAngles.y < 0f || transform.rotation.eulerAngles.y > 260f)
+            targetRotation = Quaternion.Euler(transform.rotation.eulerAngles.x, 90f, transform.rotation.eulerAngles.z);
     }
 }
