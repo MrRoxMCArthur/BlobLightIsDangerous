@@ -11,12 +11,15 @@ public class PlayerController : MonoBehaviour
     private Quaternion m_TargetRotation;
     private int m_JumpCount = 0;
 
+    public Transform m_PlayerTransform;
     [SerializeField] private Animator m_Animator;
+    [SerializeField] private GameManager m_GameManager;
     [SerializeField] private AudioSource m_AudioSource;
     [Range(0, .3f)] [SerializeField] private float m_MovementSmoothing = .05f;	// How much to smooth out the movement
     [SerializeField] private float m_RotationSpeed = 10f;
     [SerializeField] private float m_Speed = 10.0f;
     [SerializeField] private float m_JumpForce = 400f;
+    [SerializeField] private float m_ScaleReduce = 0.1f;
     [SerializeField] private int m_PossibleJumbs = 2;
 
     public bool m_canPlayerMove = true;
@@ -89,6 +92,15 @@ public class PlayerController : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         m_IsGrounded = true;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        transform.localScale = new Vector3(transform.localScale.x - m_ScaleReduce, transform.localScale.y - m_ScaleReduce, transform.localScale.z - m_ScaleReduce);
+        if (other.CompareTag("DeathFall"))
+            m_GameManager.GameOver();
+        else if (other.CompareTag("LevelComplete"))
+            m_GameManager.TheEnd();
     }
 
     private void Flip()
