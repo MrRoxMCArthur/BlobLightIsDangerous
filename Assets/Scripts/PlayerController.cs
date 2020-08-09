@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     private int m_JumpCount = 0;
 
     [SerializeField] private Animator m_Animator;
+    [SerializeField] private AudioSource m_AudioSource;
     [Range(0, .3f)] [SerializeField] private float m_MovementSmoothing = .05f;	// How much to smooth out the movement
     [SerializeField] private float m_RotationSpeed = 10f;
     [SerializeField] private float m_Speed = 10.0f;
@@ -28,7 +29,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetButtonDown("Speed"))
+        if (Input.GetButton("Speed"))
             m_IsRunning = true;
         else
             m_IsRunning = false;
@@ -39,7 +40,7 @@ public class PlayerController : MonoBehaviour
             ++m_JumpCount;
             m_Animator.SetBool("IsJumping", true);
             // Add a vertical force to the player.
-            m_RigidBody.AddForce(new Vector3(0f, m_IsRunning ? m_JumpForce + 500: m_JumpForce, 0f));
+            m_RigidBody.AddForce(new Vector3(0f, m_IsRunning ? m_JumpForce + 200: m_JumpForce, 0f));
             m_IsGrounded = false;
         }
         else if (m_IsGrounded && !Input.GetButtonDown("Jump"))
@@ -53,7 +54,7 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate()
     {
         float mH = Input.GetAxis("Horizontal");
-        float moveingSpeed = mH * m_Speed + (m_IsRunning ? mH * m_Speed : 0);
+        float moveingSpeed = mH * m_Speed + (m_IsRunning ? (mH * m_Speed) * 2 : 0);
         // Move the character by finding the target velocity
 
         Vector3 targetVelocity = new Vector3(moveingSpeed, m_RigidBody.velocity.y, m_RigidBody.velocity.z);
@@ -65,10 +66,24 @@ public class PlayerController : MonoBehaviour
         }
 
         if (mH != 0f)
+        {
             m_Animator.SetBool("IsRunning", true);
-        else
-            m_Animator.SetBool("IsRunning", false);
 
+            if (!m_IsGrounded)
+                m_AudioSource.Stop();
+            else if (!m_AudioSource.isPlaying)
+            {
+                m_AudioSource.pitch = 1f;
+                if (m_IsRunning)
+                    m_AudioSource.pitch = 1.5f;
+                m_AudioSource.PlayOneShot(m_AudioSource.clip);
+            }
+        }
+        else
+        {
+            m_AudioSource.Stop();
+            m_Animator.SetBool("IsRunning", false);
+        }
     }
 
     void OnCollisionEnter(Collision collision)
